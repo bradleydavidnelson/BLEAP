@@ -13,7 +13,7 @@ namespace BLEAP
     public partial class CalibratePH : Form
     {
         private Main referencingForm;
-        private const float PH_SLOPE = 0.02F;
+        private const float PH_SLOPE = 0.004F;
         private float phValue;
         private float voltageValue;
 

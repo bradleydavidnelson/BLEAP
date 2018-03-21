@@ -198,7 +198,8 @@ namespace BLEAP
         /// <returns>pH</returns>
         private double CalculatePH(double raw)
         {
-            return (0.00371674 * raw) + 0.956958;
+            double slope = 0.004;
+            return (raw * slope) + phOffset;
         }
 
         private void Configure()
@@ -289,7 +290,7 @@ namespace BLEAP
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="handle"></param>
+        /// <param name="device">Device to transition to sleep mode</param>
         private void DeviceHandlerSleep(BTDevice device)
         {
             device.isAwake = false;
@@ -307,7 +308,7 @@ namespace BLEAP
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="handle"></param>
+        /// <param name="device">Device to transition to wake mode</param>
         private void DeviceHandlerWake(BTDevice device)
         {
             device.isAwake = true;
@@ -515,6 +516,11 @@ namespace BLEAP
         /// <param name="value"></param>
         public void SetPHOffset(float value)
         {
+            byte[] cmd = bglib.BLECommandATTClientAttributeWrite(connectedDevice.connection, connectedDevice.attHandlePHCal, BitConverter.GetBytes(value));
+            Document(String.Format("ble_cmd_att_client_attribute_write: handle={0}, att_handle={1}, data=[ {2}]",
+                connectedDevice.connection, connectedDevice.attHandlePHCal, ByteArrayToHexString(BitConverter.GetBytes(value))));
+            bglib.SendCommand(serialAPI, cmd);
+
             phOffset = value;
         }
 

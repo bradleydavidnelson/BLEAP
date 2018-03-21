@@ -580,7 +580,6 @@ namespace BLEAP
 
                 if (device.attHandlePH > 0)
                 {
-                    // TODO: Calculate pH
                     double ph = CalculatePH(val[length - 1]);
 
                     // Display
@@ -626,7 +625,6 @@ namespace BLEAP
             // TEMPERATURE PACKET
             if (e.atthandle == device.attHandleTemp)
             {
-                Document("Temp1");
                 // new code: Temperature packet has 2 bytes
                 if (e.value.Length == 2)
                 {
@@ -645,7 +643,6 @@ namespace BLEAP
                     }
 
                     double Vo = value * reference / resolution;
-                    Document(String.Format("Measured temperature: {0} mV", Vo));
                     // LMT89
                     device.temp = Math.Sqrt(2196200D + (1.8639D - (Vo/1000D)) / (0.00000388D)) - 1481.96D;
 
@@ -657,7 +654,6 @@ namespace BLEAP
             // TEMPERATURE2 PACKET
             if (e.atthandle == device.attHandleTemp2)
             {
-                Document("Temp2");
                 Int16 value;
                 if (BitConverter.IsLittleEndian)
                 {
@@ -693,8 +689,8 @@ namespace BLEAP
             // PH OFFSET PACKET
             if (e.atthandle == device.attHandlePHCal)
             {
+                // Save received packet as a float
                 phOffset = BitConverter.ToSingle(e.value, 0);
-                Console.WriteLine("Offset at {0}", phOffset);
             }
         }
     }
