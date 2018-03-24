@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Management;
 using System.Text;
@@ -10,6 +11,36 @@ namespace BLEAP
 {
     public partial class Main
     {
+        /// <summary>
+        /// Attach the selected USB device. If successful, begin the scanning procedure.
+        /// </summary>
+        private void AttachUSB()
+        {
+            // Open the port designated by comboPorts.SelectedValue
+            Document("Opening serial port '" + comboPorts.SelectedValue + "'..." + Environment.NewLine);
+            try
+            {
+                serialAPI.PortName = comboPorts.SelectedValue.ToString();
+                serialAPI.Open();
+                serialAPI.DiscardInBuffer();
+                serialAPI.DiscardOutBuffer();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                Document("Failed to open serial port" + Environment.NewLine);
+                return;
+            }
+            Document(String.Format("{0} opened", serialAPI.PortName));
+            btnAttach.Text = "Detach";
+            statusCOM.Text = String.Format("{0}", comboPorts.SelectedValue);
+            statusCOM.ForeColor = Color.Black;
+            isAttached = true;
+
+            // Begin scanning procedure
+            GAPScan();
+        }
+
         private void ConfigurePorts()
         {
             serialAPI.Handshake = System.IO.Ports.Handshake.RequestToSend;
@@ -18,16 +49,6 @@ namespace BLEAP
             serialAPI.StopBits = System.IO.Ports.StopBits.One;
             serialAPI.Parity = System.IO.Ports.Parity.None;
             serialAPI.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(DataReceivedHandler);
-        }
-
-        private void ConnectToPort(String port)
-        {
-            Document("Opening serial port '" + comboPorts.SelectedValue.ToString() + "'..." + Environment.NewLine);
-            serialAPI.PortName = port;
-            serialAPI.Open();
-            serialAPI.DiscardInBuffer();
-            serialAPI.DiscardOutBuffer();
-            Document("Port opened" + Environment.NewLine);
         }
 
         private void DataReceivedHandler(
@@ -48,13 +69,36 @@ namespace BLEAP
                 // TODO: Close serial port if it is open?
                 return;
             }
-            //ThreadSafeDelegate(delegate { txtLog.AppendText(String.Format("<= RX ({0}) [ {1}]", inData.Length, ByteArrayToHexString(inData)) + Environment.NewLine); });
+
+            Document(String.Format("Data Received: {0}", ByteArrayToHexString(inData)));
 
             // Parse all bytes read through BGLib parser
             for (int i = 0; i < inData.Length; i++)
             {
                 bglib.Parse(inData[i]);
             }
+        }
+
+        private void DetachUSB()
+        {
+            // TODO: If a connection is still active, disconnect from the device
+
+            Document("Closing serial port..." + Environment.NewLine);
+            try
+            {
+                serialAPI.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                Document("Failed to close serial port" + Environment.NewLine);
+                return;
+            }
+            Document(String.Format("{0} closed", serialAPI.PortName));
+            btnAttach.Text = "Attach";
+            statusCOM.Text = "COM";
+            statusCOM.ForeColor = Color.Gray;
+            isAttached = false;
         }
 
         private Dictionary<String, String> GetPortList()

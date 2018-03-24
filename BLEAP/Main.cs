@@ -116,49 +116,11 @@ namespace BLEAP
         {
             if (isAttached)
             {
-                // TODO: If a connection is still active, disconnect from the device
-
-                Document("Closing serial port..." + Environment.NewLine);
-                try
-                {
-                    serialAPI.Close();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString());
-                    Document("Failed to close serial port" + Environment.NewLine);
-                    return;
-                }
-                Document(String.Format("{0} closed",serialAPI.PortName));
-                btnAttach.Text = "Attach";
-                statusCOM.Text = "COM";
-                statusCOM.ForeColor = Color.Gray;
-                isAttached = false;
+                DetachUSB();
             }
             else
             {
-                // Open the port designated by comboPorts.SelectedValue
-                Document("Opening serial port '" + comboPorts.SelectedValue + "'..." + Environment.NewLine);
-                serialAPI.PortName = comboPorts.SelectedValue.ToString();
-                try
-                {
-                    serialAPI.Open();
-                    serialAPI.DiscardInBuffer();
-                    serialAPI.DiscardOutBuffer();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString());
-                    Document("Failed to open serial port" + Environment.NewLine);
-                    return;
-                }
-                Document(String.Format("{0} opened",serialAPI.PortName));
-                btnAttach.Text = "Detach";
-                statusCOM.Text = String.Format("{0}", comboPorts.SelectedValue);
-                statusCOM.ForeColor = Color.Black;
-                isAttached = true;
-
-                GAPScan();
+                AttachUSB();
             }
         }
 
@@ -232,7 +194,6 @@ namespace BLEAP
                 Byte[] cmd = bglib.BLECommandGAPConnectDirect(device.address, device.addrType, 0x20, 0x30, 0x100, 0); // 125ms interval, 125ms window, active scanning
                 Document(String.Format("ble_cmd_gap_connect_direct: address=[{0}], address_type={1}, conn_interval_min={2}, conn_interval_max={3}, timeout={4}, latency ={5}",
                     device.address, device.addrType, 0x20, 0x30, 0x100, 0));
-                //Document(String.Format("=> TX ({0}) [ {1}]", cmd.Length, ByteArrayToHexString(cmd)) + Environment.NewLine);
                 bglib.SendCommand(serialAPI, cmd);
 
                 // update state
