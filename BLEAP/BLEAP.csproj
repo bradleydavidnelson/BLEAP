@@ -54,6 +54,12 @@
     </Compile>
     <Compile Include="BGLib.cs" />
     <Compile Include="BTDevice.cs" />
+    <Compile Include="Calibrate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Calibrate.Designer.cs">
+      <DependentUpon>Calibrate.cs</DependentUpon>
+    </Compile>
     <Compile Include="CalibratePH.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -80,6 +86,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Calibrate.resx">
+      <DependentUpon>Calibrate.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="CalibratePH.resx">
       <DependentUpon>CalibratePH.cs</DependentUpon>
     </EmbeddedResource>
@@ -109,7 +118,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

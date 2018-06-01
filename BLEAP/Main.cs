@@ -18,7 +18,7 @@ namespace BLEAP
 {
     public partial class Main : Form
     {
-        private Bluegiga.BGLib bglib = new Bluegiga.BGLib();
+        public Bluegiga.BGLib bglib = new Bluegiga.BGLib();
         private bool isAttached = false;
 
         // BLE Devices
@@ -74,7 +74,9 @@ namespace BLEAP
 
         private float phOffset = 0;
 
+        // Settings
         private bool disableGraph = true;
+        private bool showRSSI = true;
 
         /// <summary>
         /// 
@@ -190,11 +192,20 @@ namespace BLEAP
             {
                 ThreadSafeDelegate(delegate { ((Button)sender).Text = "Connecting..."; });
 
+                // Connection parameters
+                float connectionMinimum = 40; // in ms
+                float connectionWindow = 20; // in ms
+                float connectionTimeout = 2560; // in ms
+
+                ushort conn_interval_min = (ushort) (connectionMinimum / 1.25F);
+                ushort conn_interval_max = (ushort) ((connectionMinimum + connectionWindow) / 1.25F);
+                ushort timeout = (ushort) (connectionTimeout / 10F);
+
                 // Form a direct connection
-                Byte[] cmd = bglib.BLECommandGAPConnectDirect(device.address, device.addrType, 0x20, 0x30, 0x100, 0); // 125ms interval, 125ms window, active scanning
+                Byte[] cmd = bglib.BLECommandGAPConnectDirect(device.address, device.addrType, conn_interval_min, conn_interval_max, timeout, 0); // 125ms interval, 125ms window, active scanning
                 Document(String.Format("ble_cmd_gap_connect_direct: address=[{0}], address_type={1}, conn_interval_min={2}, conn_interval_max={3}, timeout={4}, latency ={5}",
-                    device.address, device.addrType, 0x20, 0x30, 0x100, 0));
-                bglib.SendCommand(serialAPI, cmd);
+                    device.address, device.addrType, conn_interval_min, conn_interval_max, timeout, 0));
+                Transmit(cmd);
 
                 // update state
                 currentProcedure = STATE_CONNECTING;
@@ -390,8 +401,43 @@ namespace BLEAP
         /// <param name="e"></param>
         private void OpenCalibrationForm(object sender, EventArgs e)
         {
-            CalibratePH calForm = new CalibratePH(this);
-            calForm.Show();
+            Document("Entered OpenCalibrationForm()");
+            // Are there any devices to calibrate?
+            if (devicesConnected.Count < 1)
+            {
+                MessageBox.Show("Please connect a sensor to calibrate.", "Error");
+                return;
+            }
+
+            List<BTDevice> potAvailable = new List<BTDevice>();
+            List<BTDevice> phAvailable = new List<BTDevice>();
+
+            foreach (BTDevice d in devicesConnected.Values)
+            {
+                if (d.attHandlePot > 0)
+                {
+                    potAvailable.Add(d);
+                }
+
+                if (d.attHandlePHCal > 0)
+                {
+                    phAvailable.Add(d);
+                }
+            }
+
+            // Open potentiometer calibration window
+            if (potAvailable.Count > 0)
+            {
+                Calibrate potForm = new Calibrate(this, potAvailable);
+                potForm.Show();
+            }
+
+            // Open pH calibration window
+            if (phAvailable.Count > 0)
+            {
+                CalibratePH phForm = new CalibratePH(this);
+                phForm.Show();
+            }
         }
 
         private void Quit(object sender, EventArgs e)
@@ -680,16 +726,21 @@ namespace BLEAP
         /// <param name="newData"></param>
         private void UpdateTable(BTDevice device, double[] newData)
         {
-            // Display in labels
+            // Get uptime
             TimeSpan t = TimeSpan.FromMilliseconds(device.currTime);
             String timeString = String.Format("{0:D2}:{1:D2}:{2:D2}:{3:D2}.{4:D2}", t.Days, t.Hours, t.Minutes, t.Seconds, t.Milliseconds);
-            ThreadSafeDelegate(delegate { device.uptimeLabel.Text = Convert.ToString(timeString); });
-            ThreadSafeDelegate(delegate { device.ADC0Label.Text = Convert.ToString(newData[newData.Length - 1]); });
+
+            // Display in labels
+            ThreadSafeDelegate(delegate
+            {
+                device.uptimeLabel.Text = Convert.ToString(timeString);
+                device.ADC0Label.Text = Convert.ToString(Math.Round(newData.Average()));
+            });
 
             // TODO: Handle pH mode
         }
 
-        private void Document(String s)
+        public void Document(String s)
         {
             if (!s.EndsWith(Environment.NewLine))
             {
@@ -697,6 +748,11 @@ namespace BLEAP
             }
             Console.Write(s);
             ThreadSafeDelegate(delegate { txtLog.AppendText(s); });
+        }
+
+        public void Transmit(Byte[] cmd)
+        {
+            bglib.SendCommand(serialAPI, cmd);
         }
 
         private void Exit(object sender, FormClosingEventArgs e)

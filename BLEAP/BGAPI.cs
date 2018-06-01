@@ -645,7 +645,7 @@ namespace BLEAP
                     double Vo = value * reference / resolution;
                     // LMT89
                     device.temp = Math.Sqrt(2196200D + (1.8639D - (Vo/1000D)) / (0.00000388D)) - 1481.96D;
-
+                    Document(String.Format("Temp ADC: {0}", Vo));
                     // Display temperature
                     ThreadSafeDelegate(delegate { device.tempLabel.Text = String.Format("{0:0.0}", device.temp); });
                 }
