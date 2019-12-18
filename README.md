@@ -1,4 +1,3 @@
-# BLEAP
-Bluetooth Low-Energy Access Point
+# BLEAP (Deprecated)
 
-This software acts as the access point for the MTU Biosensors BLE wireless sensors.
+This project is no longer maintained. It has been replaced by [BlueEyes](github.com/bradleydavidnelson/BlueEyes).
