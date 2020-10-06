@@ -10,7 +10,18 @@
 1. [License](#license)
 
 ## Getting Started
-The executable may be found in the install directory at `BLEAP\bin\Debug\BLEAP.exe` or `BLEAP\bin\Release\BLEAP.exe`.
+The executable may be found in the install directory at `BLEAP\bin\Debug\BLEAP.exe`. The version in `BLEAP\bin\Release\BLEAP.exe` does not work correctly.
+
+This project contains several files:
+- `BGAPI.cs` contains code to interface with BlueGiga events.
+- `BGLib.cs` is the library provided by BlueGiga. This should not be modified.
+- `BTDevice.cs` defines a data structure to contain BLE113 device data.
+- `Calibrate.cs` contains code for the calibration window.
+- `CalibratePH.cs` contains code to calibrate the pH sensor. It is depreciated and replaced with `Calibrate.cs`.
+- `CalibrateStrain.cs` contains code to calibrate the strain sensor. It is depreciated and replaced with `Calibrate.cs`.
+- `COM.cs` contains code to interface with the USB port.
+- `DataTable.cs` is depreciated.
+- `Main.cs` contains code for the main interface.
 
 ---
 ## Usage
